@@ -1,10 +1,12 @@
 import ScratchLSTM
 import ScratchEmbedding
 import ScratchDense
+import ScratchRNN
 import numpy as np
 function_dict ={
     "relu" : lambda x: np.maximum(0, x),
-    "softmax" : lambda x: np.exp(x) / np.sum(np.exp(x), axis=-1, keepdims=True)
+    "softmax" : lambda x: np.exp(x) / np.sum(np.exp(x), axis=-1, keepdims=True),
+    "tanh" : lambda x: np.tanh(x)
 }
 
 class Model:
@@ -20,6 +22,7 @@ class Model:
 def convertModel(model):
     activated = False
     LSTM_layer_flags = {}
+    RNN_layer_flags = {}
     for i, layer in enumerate(model.layers):
         if layer.name.lower().startswith("lstm"):
             activated = True
@@ -30,13 +33,19 @@ def convertModel(model):
             if activated:
                 LSTM_layer_flags[i-1] = False
                 activated = False
-    print(LSTM_layer_flags)
+        if layer.name.lower().startswith("simple_rnn"):
+            activated = True
+            i += 1
+            while(model.layers[i].name.lower().startswith("simple_rnn")):
+                RNN_layer_flags[i-1] = True
+                i += 1
+            if activated:
+                RNN_layer_flags[i-1] = False
+                activated = False 
     layers = []
     for j, layer in enumerate(model.layers):
         if layer.name.lower().startswith("lstm"):
             print(f"{j} Lstm layer found")
-            print(layer.units)
-            print(LSTM_layer_flags.get(j))
             layers.append(ScratchLSTM.ScratchLSTM(
                 hidden_size=layer.units,
                 lstm_weights=layer.get_weights(),
@@ -53,5 +62,11 @@ def convertModel(model):
             layers.append(ScratchEmbedding.ScratchEmbedding(
                 embedding_weight=layer.get_weights()[0]
             ))
-            print(f"Embedding weight shape: {layer.get_weights()[0].shape}")
+        if layer.name.lower().startswith("simple_rnn"):
+            print(f"{j} RNN layer found")
+            layers.append(ScratchRNN.ScratchRNN(
+                weight=layer.get_weights(),
+                activation=function_dict.get(layer.activation.__name__.lower()),
+                manytomany=RNN_layer_flags.get(j)
+            ))
     return Model(layers=layers)
