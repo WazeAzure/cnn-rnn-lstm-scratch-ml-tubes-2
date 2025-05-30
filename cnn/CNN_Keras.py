@@ -7,7 +7,6 @@ from sklearn.metrics import f1_score, classification_report
 import pickle
 import os
 
-# Set random seeds for reproducibility
 np.random.seed(42)
 tf.random.set_seed(42)
 
@@ -55,10 +54,8 @@ class CNNTrainer:
         """Create CNN model with specified configuration"""
         model = keras.Sequential()
         
-        # Input layer
         model.add(layers.Input(shape=(32, 32, 3)))
         
-        # Convolutional layers
         for i in range(conv_layers):
             model.add(layers.Conv2D(
                 filters=filters_config[i % len(filters_config)],
@@ -67,21 +64,17 @@ class CNNTrainer:
                 padding='same'
             ))
             
-            # Pooling layer
             if pooling_type == 'max':
                 model.add(layers.MaxPooling2D(pool_size=(2, 2)))
             else:
                 model.add(layers.AveragePooling2D(pool_size=(2, 2)))
         
-        # Flatten layer
         model.add(layers.Flatten())
         
-        # Dense layers
         model.add(layers.Dense(128, activation='relu'))
         model.add(layers.Dropout(0.5))
         model.add(layers.Dense(10, activation='softmax'))
         
-        # Compile model
         model.compile(
             optimizer='adam',
             loss='sparse_categorical_crossentropy',
@@ -121,14 +114,11 @@ class CNNTrainer:
     
     def evaluate_model(self, model, model_name):
         """Evaluate model and calculate F1-score"""
-        # Predictions on test set
         y_pred_probs = model.predict(self.x_test, verbose=0)
         y_pred = np.argmax(y_pred_probs, axis=1)
         
-        # Calculate macro F1-score
         f1_macro = f1_score(self.y_test, y_pred, average='macro')
         
-        # Test accuracy
         test_loss, test_acc = model.evaluate(self.x_test, self.y_test, verbose=0)
         
         print(f"\n{model_name} Results:")
@@ -319,18 +309,16 @@ class CNNTrainer:
         """Run all hyperparameter experiments"""
         self.load_and_prepare_data()
         
-        # Create directories
         os.makedirs('saved_models', exist_ok=True)
         
-        # Run experiments
-        # conv_results = self.experiment_conv_layers()
+        conv_results = self.experiment_conv_layers()
         filter_results = self.experiment_filter_numbers()
         kernel_results = self.experiment_kernel_sizes()
         pooling_results = self.experiment_pooling_types()
         
         # Save all results
         all_results = {
-            # 'conv_layers': conv_results,
+            'conv_layers': conv_results,
             'filter_numbers': filter_results,
             'kernel_sizes': kernel_results,
             'pooling_types': pooling_results
