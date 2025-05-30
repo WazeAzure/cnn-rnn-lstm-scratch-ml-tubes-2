@@ -6,3 +6,6 @@ class ScratchEmbedding:
 
     def forward(self, x):
         return self.embedding_weight[x]
+
+    def getShape(self):
+        return self.dense_weights.shape

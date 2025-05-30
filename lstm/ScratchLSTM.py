@@ -53,3 +53,6 @@ class ScratchLSTM:
             return np.stack(outputs, axis=1)  # Many to many output
         else:
             return self.h  # Single output
+    
+    def getShape(self):
+        return self.dense_weights.shape
