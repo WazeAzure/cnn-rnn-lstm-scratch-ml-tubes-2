@@ -10,16 +10,17 @@ function_dict ={
 }
 
 class Model:
-    def __init__(self, layers=[]):
+    def __init__(self, layers=[], name="Model"):
         self.layers = layers
-        
+        self.name = name
+
     def predict(self, x):
+        print(f"{self.name} Forward propagation started with input shape: {x.shape}")
         for i,layer in enumerate(self.layers):
-            print(i, x.shape)
             x = layer.forward(x)
         return x
 
-def convertModel(model):
+def convertModel(model, model_name="Model"):
     activated = False
     LSTM_layer_flags = {}
     RNN_layer_flags = {}
@@ -69,4 +70,4 @@ def convertModel(model):
                 activation=function_dict.get(layer.activation.__name__.lower()),
                 manytomany=RNN_layer_flags.get(j)
             ))
-    return Model(layers=layers)
+    return Model(layers=layers, name=model_name)
