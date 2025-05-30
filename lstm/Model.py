@@ -18,7 +18,6 @@ class Model:
         self.name = name
 
     def predict(self, x):
-        print(f"{self.name} Forward propagation started with input shape: {x.shape}")
         for i,layer in enumerate(self.layers):
             x = layer.forward(x)
         return x
